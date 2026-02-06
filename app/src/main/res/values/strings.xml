@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AppAPIs</string>
+    <string name="item_age">%1$d anos</string>
 </resources>
