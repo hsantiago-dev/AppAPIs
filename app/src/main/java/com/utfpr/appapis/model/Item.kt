@@ -12,7 +12,7 @@ data class ItemValue (
     val profession: String,
     val imageUrl: String,
     val age: Int,
-    val location: ItemLocation
+    val location: ItemLocation?
 ) {
     val fullName: String
         get() = "$name $surname"
