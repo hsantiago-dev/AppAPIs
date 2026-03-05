@@ -109,6 +109,38 @@ class ItemDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun deleteItem() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = safeApiCall {
+                RetrofitClient.apiService.deleteItem(item.id)
+            }
+
+            withContext(Dispatchers.Main) {
+                when(result) {
+                    is Result.Success -> {
+                        handleSuccessDelete()
+                    }
+                    is Result.Error -> {
+                        Toast.makeText(
+                            this@ItemDetailActivity,
+                            "Error deleting item",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleSuccessDelete() {
+        Toast.makeText(
+            this,
+            "Item deleted successfully",
+            Toast.LENGTH_SHORT
+        ).show()
+        finish()
+    }
+
     private fun setupView() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -116,6 +148,10 @@ class ItemDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+        binding.deleteCTA.setOnClickListener {
+            deleteItem()
+        }
+
     }
 
     override fun onMapReady(p0: GoogleMap) {
