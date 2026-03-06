@@ -2,6 +2,7 @@ package com.utfpr.appapis
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -111,6 +112,8 @@ class MainActivity : AppCompatActivity() {
         binding.addCta.setOnClickListener {
 
         }
+
+        binding.message.setOnClickListener { fetchItens() }
     }
 
     private fun fetchItens() {
@@ -123,15 +126,28 @@ class MainActivity : AppCompatActivity() {
                 binding.main.isRefreshing = false
                 when (result) {
                     is Result.Success -> handleOnSuccess(result.data)
-                    is Result.Error -> {
-                        // Handle error
-                    }
+                    is Result.Error -> handleOrError()
                 }
             }
         }
     }
 
+    private fun handleOrError() {
+        binding.message.visibility = View.VISIBLE
+        binding.recyclerView.visibility = View.GONE
+        binding.message.setText(R.string.generical_error)
+    }
+
     private fun handleOnSuccess(items: List<Item>) {
+        if (items.isEmpty()) {
+            binding.message.visibility = View.VISIBLE
+            binding.message.setText(R.string.no_items)
+            binding.recyclerView.visibility = View.GONE
+            return
+        }
+        binding.message.visibility = View.GONE
+        binding.recyclerView.visibility = View.VISIBLE
+
         binding.recyclerView.adapter = ItemAdapter(items) {
             val intent = ItemDetailActivity.newIntent(this, it.id)
             startActivity(intent)
