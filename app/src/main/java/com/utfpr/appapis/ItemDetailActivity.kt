@@ -76,7 +76,8 @@ class ItemDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                         handleSuccess()
                     }
                     is Result.Error -> {
-                        Toast.makeText(this@ItemDetailActivity, "Error fetching item", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ItemDetailActivity,
+                            getString(R.string.error_fetching_item), Toast.LENGTH_SHORT).show()
                         finish()
                     }
                 }
@@ -123,7 +124,7 @@ class ItemDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                     is Result.Error -> {
                         Toast.makeText(
                             this@ItemDetailActivity,
-                            "Error deleting item",
+                            getString(R.string.error_deleting_item),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -135,7 +136,7 @@ class ItemDetailActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun handleSuccessDelete() {
         Toast.makeText(
             this,
-            "Item deleted successfully",
+            getString(R.string.item_deleted_successfully),
             Toast.LENGTH_SHORT
         ).show()
         finish()
@@ -151,7 +152,40 @@ class ItemDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.deleteCTA.setOnClickListener {
             deleteItem()
         }
+        binding.editCTA.setOnClickListener {
+            editItem()
+        }
+    }
 
+    private fun editItem() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = safeApiCall {
+                RetrofitClient.apiService.updateItem(
+                    item.id,
+                    item.value.copy(profession = binding.profession.text.toString())
+                )
+            }
+
+            withContext(Dispatchers.Main) {
+                when(result) {
+                    is Result.Success -> {
+                        Toast.makeText(
+                            this@ItemDetailActivity,
+                            getString(R.string.item_edited_successfully),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    }
+                    is Result.Error -> {
+                        Toast.makeText(
+                            this@ItemDetailActivity,
+                            getString(R.string.error_editing_item),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
     }
 
     override fun onMapReady(p0: GoogleMap) {

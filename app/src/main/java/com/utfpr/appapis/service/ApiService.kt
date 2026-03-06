@@ -1,8 +1,11 @@
 package com.utfpr.appapis.service
 
 import com.utfpr.appapis.model.Item
+import com.utfpr.appapis.model.ItemValue
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 
 interface ApiService {
@@ -14,4 +17,7 @@ interface ApiService {
 
     @DELETE("/items/{id}")
     suspend fun deleteItem(@Path("id") id: String): Item
+
+    @PATCH("/items/{id}")
+    suspend fun updateItem(@Path("id") id: String, @Body item: ItemValue): Item
 }
