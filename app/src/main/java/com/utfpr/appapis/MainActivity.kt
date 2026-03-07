@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        fetchItens()
+        fetchItems()
     }
 
     private fun setupWindowInsets() {
@@ -109,14 +109,18 @@ class MainActivity : AppCompatActivity() {
 
         }
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.addCta.setOnClickListener {
+        binding.addCta.setOnClickListener { navigateToNewIntent() }
 
-        }
-
-        binding.message.setOnClickListener { fetchItens() }
+        binding.message.setOnClickListener { fetchItems() }
     }
 
-    private fun fetchItens() {
+
+    private fun navigateToNewIntent() {
+        val intent = NewItemActivity.newIntent(this)
+        startActivity(intent)
+    }
+
+    private fun fetchItems() {
         CoroutineScope(Dispatchers.IO).launch {
             val result = safeApiCall {
                 RetrofitClient.apiService.getItems()
