@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.utfpr.appapis"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.utfpr.appapis"
