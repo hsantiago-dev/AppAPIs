@@ -12,4 +12,5 @@
     <string name="error_add_item">Error adding item</string>
     <string name="item_added_successfully">Item added successfully</string>
     <string name="location_permission_denied">Location permission denied</string>
+    <string name="camera_permission_denied">Camera permission denied</string>
 </resources>

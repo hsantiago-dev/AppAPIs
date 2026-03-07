@@ -1,15 +1,23 @@
 package com.utfpr.appapis
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -30,12 +38,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.security.SecureRandom
+import java.text.SimpleDateFormat
 
 class NewItemActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+        private const val CAMERA_PERMISSION_REQUEST_CODE = 1002
 
         fun newIntent(context: Context): Intent {
             return Intent(context, NewItemActivity::class.java)
@@ -46,6 +57,15 @@ class NewItemActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var selectedMarker: Marker? = null
+    private lateinit var imageUri: Uri
+
+    private val cameraLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == RESULT_OK) {
+            binding.imageUrl.setText("Imagem obtida")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,7 +113,7 @@ class NewItemActivity : AppCompatActivity(), OnMapReadyCallback {
 
         when (requestCode) {
             LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadCurrentLocation()
                 } else {
                     Toast.makeText(
@@ -103,15 +123,25 @@ class NewItemActivity : AppCompatActivity(), OnMapReadyCallback {
                     ).show()
                 }
             }
+            CAMERA_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.camera_permission_denied),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
 
     }
     private fun getDeviceLocation() {
-        // verificar permissões e obter localização do dispositivo
         if (ContextCompat.checkSelfPermission(
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             loadCurrentLocation()
         } else {
@@ -142,6 +172,38 @@ class NewItemActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         binding.saveCta.setOnClickListener { saveItem() }
+
+        binding.takePictureCta.setOnClickListener { takePicture() }
+    }
+
+    private fun takePicture() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
+        }
+    }
+
+    private fun openCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        imageUri = createImageUri()
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        cameraLauncher.launch(intent)
+    }
+
+    private fun createImageUri(): Uri {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(java.util.Date())
+        val imageFileName = "JPEG_${timestamp}_"
+
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
+
+        return FileProvider.getUriForFile(
+            this,
+            "com.utfpr.appapis.fileprovider",
+            imageFile
+        )
     }
 
     private fun setupGoogleMaps() {
